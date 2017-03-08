@@ -2,8 +2,8 @@
 //  ServerViewController.swift
 //  socketTestOne
 //
-//  Created by 詹啟德 on 2017/2/3.
-//  Copyright © 2017年 詹啟德. All rights reserved.
+//  Created by kiddchan on 2017/2/3.
+//  Copyright © 2017年 kiddchan. All rights reserved.
 //
 
 import UIKit
@@ -26,7 +26,6 @@ class ServerViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     
     
     @IBAction func sendImage(_ sender: UIButton) {
-        
     }
     
     
@@ -43,7 +42,6 @@ class ServerViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     
     var fileURL:URL!
     var filePath:Any!
-    
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         
         let image1 = info[UIImagePickerControllerOriginalImage] as! UIImage
@@ -57,14 +55,11 @@ class ServerViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
             do{
                 try dataToSave.write(to: fileURL)
                 print("save Image")
-                // imageURL = filePath as NSURL
                 serverImage.image = UIImage(contentsOfFile:filePath as! String)!
                 
             }catch{
                 print("Can not save Image")
             }
-            //imageURL = fileURL as NSURL
-            //print("imageURL\(imageURL)")
         }
         dismiss(animated: true, completion: nil)
         
@@ -77,13 +72,10 @@ class ServerViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
 
         portTF.delegate = self
         msgTF.delegate = self
-        //infoTV.delegate = self
-        // Do any additional setup after loading the view.
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     
@@ -119,7 +111,6 @@ class ServerViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     
     @IBAction func sendAct(_ sender: Any) {
         let data = msgTF.text?.data(using: String.Encoding.utf8)
-        //向客户端写入信息   Timeout设置为 -1 则不会超时, tag作为两边一样的标示
         clientSocket?.write(data!, withTimeout: -1, tag: 0)
     }
     
@@ -156,12 +147,40 @@ extension ServerViewController: GCDAsyncSocketDelegate {
     
     func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
 
+        //test 6
+        
+        //6-1 Error Domain=NSCocoaErrorDomain Code=3840 "JSON text did not start with array or object and option to allow fragments not set." UserInfo={NSDebugDescription=JSON text did not start with array or object and option to allow fragments not set.}
+
+        var currentPacketHead:[String:Any] = [:]
+        do {
+            currentPacketHead = try JSONSerialization.jsonObject(with: data , options: JSONSerialization.ReadingOptions.allowFragments) as! [String:Any]
+            
+
+            //currentPacketHead = try! JSONSerialization.jsonObject(with: data, options: []) as! [String : Any]
+            //6-2 fatal error: 'try!' expression unexpectedly raised an error: Error Domain=NSCocoaErrorDomain Code=3840 "Garbage at end." UserInfo={NSDebugDescription=Garbage at end.}: file /Library/Caches/com.apple.xbs/Sources/swiftlang/swiftlang-800.0.63/src/swift/stdlib/public/core/ErrorType.swift, line 178
+
+        } catch let error as NSError {
+            print(error)
+        }
+        let packetLength = currentPacketHead["size"]
+        print("packet Length: \(packetLength)")
+        print("data.count: \(data.count)")
+        let type = currentPacketHead["type"]
+        print("type \(type)")
+        serverImage.image = UIImage(data:data)
+        
+        
+        //currentPacketHead = nil
+
+        
+        
+        
         //test0  純文字接收ok
         /*
         let message = String(data: data as Data,encoding: String.Encoding.utf8)
         print(message)
         addText(text: message!)
-         */
+        */
         
         
         //test1  json文字 接收ok
@@ -169,6 +188,7 @@ extension ServerViewController: GCDAsyncSocketDelegate {
         //server錯誤訊息:
         //Error Domain=NSCocoaErrorDomain Code=3840 "Unterminated string around character 44." UserInfo={NSDebugDescription=Unterminated string around character 44.}
         //Error Domain=NSCocoaErrorDomain Code=3840 "JSON text did not start with array or object and option to allow fragments not set." UserInfo={NSDebugDescription=JSON text did not start with array or object and option to allow fragments not set.}
+        /*
         do {
             let json = try JSONSerialization.jsonObject(with: data , options:
                             JSONSerialization.ReadingOptions())
@@ -184,29 +204,25 @@ extension ServerViewController: GCDAsyncSocketDelegate {
         } catch {
             print(error)
         }
-
+        */
         
         
-        
-        
-        //test 3 純iamge data 
+        //test 3 純iamge data
         //server錯誤訊息： fatal error: unexpectedly found nil while unwrapping an Optional value
-        let message = String(data: data as Data,encoding: String.Encoding.utf8)
-        let dataDecoded:NSData = NSData(base64Encoded: message!, options: NSData.Base64DecodingOptions(rawValue: 0))!
+/*        let message = String(data: data as Data,encoding: String.Encoding.utf8)
+        //let dataDecoded:NSData = NSData(base64Encoded: message!, options: NSData.Base64DecodingOptions(rawValue: 0))!
+        
+        
+        let dataDecoded : Data = Data(base64Encoded: message!, options: .ignoreUnknownCharacters)!
+        //test4
+        //fatal error: unexpectedly found nil while unwrapping an Optional value
         let decodedimage:UIImage = UIImage(data: dataDecoded as Data)!
-        serverImage.image = decodedimage
-        
+        self.serverImage.image = decodedimage
+  */
        
         
-
-
+        
        
-        
-
-        
-        
-        
-        //再次准备读取Data,以此来循环读取Data
         sock.readData(withTimeout: -1, tag: 0)
         print("GCDAsyncSocket, didRead finish")
     }

@@ -2,8 +2,8 @@
 //  ClientViewController.swift
 //  socketTestOne
 //
-//  Created by 詹啟德 on 2017/2/3.
-//  Copyright © 2017年 詹啟德. All rights reserved.
+//  Created by kiddchan on 2017/2/3.
+//  Copyright © 2017年 kiddchan. All rights reserved.
 //
 
 import UIKit
@@ -28,20 +28,91 @@ class ClientViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     
     
     
-//    var jsonData: NSData!
+    func convertDictionaryToString(dict:[String:AnyObject]) -> String {
+        var result:String = ""
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: dict, options: JSONSerialization.WritingOptions.init(rawValue: 0))
+            
+            if let JSONString = String(data: jsonData, encoding: String.Encoding.utf8) {
+                result = JSONString
+            }
+            
+        } catch {
+            result = ""
+        }
+        return result
+    }
+
     var jsonData: Data!
     var imageData:Data!
+    var sendData:Data!
+    var mData: NSMutableData!
+    
+    
+    func sendPhotoData(data:NSData,type:String){
+        let size = data.length
+        var headDic: [String:Any] = [:]
+        headDic["type"] = type
+        headDic["size"] = "\(size)"
+        let jsonStr = convertDictionaryToString(dict: headDic as [String : AnyObject])
+        let lengthData = jsonStr.data(using: String.Encoding.utf8)
+        mData = NSMutableData.init(data: lengthData!)
+        mData.append(GCDAsyncSocket.crlfData())
+        mData.append(data as Data)
+        
+//        print(mData)
+//        socket?.write(mData as Data, withTimeout: -1, tag: 0)
+    }
+    
 
+    
     @IBAction func sendImage(_ sender: UIButton) {
+
+        //test 6
+    
+        //imageData  =  NSData.dataWithContentsOfMappedFile(filePath as! String) as! Data!
+        //sendPhotoData(data:imageData as NSData,type:"img")
+        
+        //test 6.1
+        let uploadimg = self.clientImage.image
+        imageData = UIImageJPEGRepresentation(uploadimg!, 1)
+        let imageData64 = imageData.base64EncodedData()
+        sendPhotoData(data:imageData64 as NSData,type:"img")
+        addText(text: "imageData64 count\(imageData64.count)")
+
+        
+        
+        //test 5 image to base64string
+/*
+        let uploadimg = self.clientImage.image
+        imageData = UIImageJPEGRepresentation(uploadimg!, 1)
+        let imageData_Base64str = imageData.base64EncodedString() + "\n"
+        socket?.write((imageData_Base64str.data(using: String.Encoding.utf8))!, withTimeout: -1, tag: 0)
+*/
+
+        
+        
+        
+        //test 4 image data直接傳base64string+\n轉 data
+/*        let uploadimg = self.clientImage.image
+        imageData = UIImageJPEGRepresentation(uploadimg!, 1)
+        let imageData_Base64str = imageData.base64EncodedString() + "\n"
+        sendData = imageData_Base64str.data(using: String.Encoding.utf8)
+        socket?.write(sendData!, withTimeout: -1, tag: 1) 
+        print(" Test4 sendData.count \(sendData.count)")
+ */
+
+        
         
         
         //test 3 image data直接傳        
-         let uploadimg = self.clientImage.image
-         imageData = UIImageJPEGRepresentation(uploadimg!, 1)
-         let imageData64 = imageData.base64EncodedData()
-         //print(imageData64)
-         socket?.write(imageData64, withTimeout: -1, tag: 0)
-        
+/*         let uploadimg = self.clientImage.image
+           imageData = UIImageJPEGRepresentation(uploadimg!, 1)
+           let imageData64 = imageData.base64EncodedData()
+           print(imageData64) 
+           socket?.write(imageData64, withTimeout: -1, tag: 0)
+ */
+
         
         
         
@@ -112,46 +183,81 @@ class ClientViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
         clientImage.image = nil
     }
     
-    func convertStringToDictionary(text: String) -> [String:AnyObject]? {
-        if let data = text.data(using: String.Encoding.utf8) {
-            do {
-                return try JSONSerialization.jsonObject(with: data, options: []) as? [String:AnyObject]
-            } catch let error as NSError {
-                print(error)
-            }
+    
+    @IBAction func btnTestGet(_ sender: UIButton) {
+        print("btnTestGet start")
+        let decodedimage = UIImage(data: mData as Data)
+        clientImage.image = decodedimage
+        print("btnTestGet stop")
+        
+        //test6 自己接收 失敗 xxx
+/*
+        //var json: Array<Any>!
+        var currentPacketHead:[String:AnyObject] = [:]
+        do {
+             //currentPacketHead = try JSONSerialization.jsonObject(with: mData as Data, options: []) as! [String : AnyObject]
+            
+            var json = try JSONSerialization.jsonObject(with: mData! as Data, options: JSONSerialization.ReadingOptions.mutableContainers) as? [String: AnyObject]
+
+            print(json)
+            //print(currentPacketHead)
+            //currentPacketHead = json as![String:AnyObject]
+           
+        } catch let error as NSError {
+            print(error)
         }
-        return nil
+
+        let packetLength = currentPacketHead["size"]
+        print("packet Length: \(packetLength)")
+        print("mdata.length: \(mData.length)")
+        let type = currentPacketHead["type"]
+        print("type \(type)")
+*/
+        
+        
+        
+//        //test4 接收ok
+/*
+        print(" btnTestGet: \(sendData.count)")
+        let xmlStr:String = String(bytes: sendData!, encoding: String.Encoding.utf8)!
+        let dataDecoded : Data = Data(base64Encoded: xmlStr, options: .ignoreUnknownCharacters)!
+        let decodedimage = UIImage(data: dataDecoded)
+        clientImage.image = decodedimage
+*/
+        
+        
+        
+        //test2ok 圖片解碼  data to image
+        //        let imagee = UIImage(data: imageData)
+        //        clientImage?.image = imagee
+        
+        
+        //test3失敗 jsondata to image
+        /*        var json: Array<Any>!
+                        do {
+                            let json = try JSONSerialization.jsonObject(with: jsonData , options: [])
+                            let jsonitem = json as![String:AnyObject]
+                            let txtinfo = jsonitem["txt2"] as! String
+                            print(txtinfo)
+                    let imageinfo = jsonitem["img"] as! String
+                    let dataDecoded:NSData = NSData(base64Encoded: imageinfo, options: NSData.Base64DecodingOptions(rawValue: 0))!
+                    clientImage.image = UIImage(data: dataDecoded as Data)!
+        
+                        } catch {
+                            print(error)
+         }*/
+
+        
     }
+ 
+    
+
 
     
     
     @IBAction func sendAct(_ sender: Any) {
         // test1ok 文字傳遞ok
          socket?.write((msgTF.text?.data(using: String.Encoding.utf8))!, withTimeout: -1, tag: 0)
-        
-        
-        //test2ok 圖片解碼  data to image
-//        let imagee = UIImage(data: imageData)
-//        clientImage?.image = imagee
-        
-        
-        //test3失敗 jsondata to image
-//        var json: Array<Any>!
-//                do {
-//                    let json = try JSONSerialization.jsonObject(with: jsonData , options: [])
-//                    let jsonitem = json as![String:AnyObject]
-//                    let txtinfo = jsonitem["txt2"] as! String
-//                    print(txtinfo)
-        //            let imageinfo = jsonitem["img"] as! String
-        //            let dataDecoded:NSData = NSData(base64Encoded: imageinfo, options: NSData.Base64DecodingOptions(rawValue: 0))!
-        //            clientImage.image = UIImage(data: dataDecoded as Data)!
-//        
-//                } catch {
-//                    print(error)
-//                }
-//        
-        
-        
         
     }
 

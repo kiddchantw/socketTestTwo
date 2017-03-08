@@ -2,8 +2,8 @@
 //  ViewController.swift
 //  socketTestOne
 //
-//  Created by 詹啟德 on 2017/2/3.
-//  Copyright © 2017年 詹啟德. All rights reserved.
+//  Created by kiddchan on 2017/2/3.
+//  Copyright © 2017年 kiddchan. All rights reserved.
 //
 
 import UIKit
