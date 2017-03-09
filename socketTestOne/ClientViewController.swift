@@ -65,30 +65,59 @@ class ClientViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     }
     
 
-    
-    @IBAction func sendImage(_ sender: UIButton) {
+    var test7str:String!
+    var imageDict:[String:Any] = [:]
+    var test7data:Data!
+    //var imageDict = MutableDictionary()
 
+    @IBAction func sendImage(_ sender: UIButton) {
+        
+        //test 7 
+        //You need to convert your UIImage to NSData and then convert that NSData to a NSString which will be base64 string representation of your data.
+        //Once you get the NSString* from NSData*, you can add it to your dictionary at key @"image"
+        let uploadimg = self.clientImage.image
+        imageData = UIImageJPEGRepresentation(uploadimg!, 1)       //UIImage to NSData
+        let imageData_Base64str = imageData.base64EncodedString()  //NSData to string
+       // imageDict.setObject(imageData_Base64str, forKey: "img")
+        //imageDict.setValue(imageData_Base64str, forKey: "image")
+        imageDict["image"] = imageData_Base64str
+        //print(imageDict)
+        //7-1
+        test7str = convertDictionaryToString(dict: imageDict as [String : AnyObject])
+        //print(test7str)
+        //7-2
+        test7data = test7str.data(using: String.Encoding.utf8)
+        print(test7data)
+        //7-3
+        socket?.write(test7data, withTimeout: -1, tag: 0)
+
+        
+        
+        
+        
         //test 6
     
         //imageData  =  NSData.dataWithContentsOfMappedFile(filePath as! String) as! Data!
         //sendPhotoData(data:imageData as NSData,type:"img")
         
         //test 6.1
+ /*
         let uploadimg = self.clientImage.image
         imageData = UIImageJPEGRepresentation(uploadimg!, 1)
-        let imageData64 = imageData.base64EncodedData()
-        sendPhotoData(data:imageData64 as NSData,type:"img")
-        addText(text: "imageData64 count\(imageData64.count)")
-
+        //let imageData64 = imageData.base64EncodedData()
+        //sendPhotoData(data:imageData64 as NSData,type:"img")
+        addText(text: "imageData count\(imageData.count)")
+*/
         
         
         //test 5 image to base64string
 /*
         let uploadimg = self.clientImage.image
         imageData = UIImageJPEGRepresentation(uploadimg!, 1)
-        let imageData_Base64str = imageData.base64EncodedString() + "\n"
+//        let imageData_Base64str = imageData.base64EncodedString() + "\n"
+        let imageData_Base64str = imageData.base64EncodedString() + "}"
         socket?.write((imageData_Base64str.data(using: String.Encoding.utf8))!, withTimeout: -1, tag: 0)
-*/
+  */
 
         
         
@@ -184,13 +213,58 @@ class ClientViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     }
     
     
+    
+    func convertStringToDictionary(text: String) -> [String:AnyObject]? {
+        if let data = text.data(using: String.Encoding.utf8) {
+            do {
+                return try JSONSerialization.jsonObject(with: data, options: [JSONSerialization.ReadingOptions.init(rawValue: 0)]) as? [String:AnyObject]
+            } catch let error as NSError {
+                print(error)
+            }
+        }
+        return nil
+    }
+    
+    
     @IBAction func btnTestGet(_ sender: UIButton) {
         print("btnTestGet start")
-        let decodedimage = UIImage(data: mData as Data)
+        //test 7 ok 可以從 imageDict抓到資料
+            //7.2
+            let dataString:String = String(data: test7data, encoding: String.Encoding.utf8)!
+
+            //7.1
+            let jsondic:[String:AnyObject] = convertStringToDictionary(text: dataString)!
+        let strBase64 = jsondic["image"] as! String
+        let dataDecoded:NSData = NSData(base64Encoded: strBase64 , options: NSData.Base64DecodingOptions(rawValue: 0))!
+        let decodedimage:UIImage = UIImage(data: dataDecoded as Data)!
+        //print(decodedimage)
         clientImage.image = decodedimage
-        print("btnTestGet stop")
+        
+        
+        
+        
+        
+        //let decodedimage =
+//        clientImage.image = UIImage(data:imageDict["image"] )
+//        let xmlStr:String = String(bytes: imageDict["image"], encoding: String.Encoding.utf8)!
+//        let dataDecoded : Data = Data(base64Encoded: xmlStr, options: .ignoreUnknownCharacters)!
+//        let decodedimage = UIImage(data: dataDecoded)
+//        clientImage.image = decodedimage
+        
+        
+        
+        
+        
+//        let decodedimage = UIImage(data: mData as Data)
+//        clientImage.image = decodedimage
         
         //test6 自己接收 失敗 xxx
+        //6-3
+//        let decodeimage = NSData(bytes: imageData, length: 2)
+//        clientImage.image = UIImage(data: decodeimage)
+
+        
+        
 /*
         //var json: Array<Any>!
         var currentPacketHead:[String:AnyObject] = [:]
@@ -247,7 +321,8 @@ class ClientViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
                             print(error)
          }*/
 
-        
+        print("btnTestGet stop")
+
     }
  
     

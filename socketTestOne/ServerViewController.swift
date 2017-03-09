@@ -116,7 +116,7 @@ class ServerViewController: UIViewController,UITextFieldDelegate,UIImagePickerCo
     
     
 
-   
+  
 }
 
 extension ServerViewController: GCDAsyncSocketDelegate {
@@ -144,13 +144,34 @@ extension ServerViewController: GCDAsyncSocketDelegate {
         return nil
     }
     
-    
     func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
+        
+        //test 7-3
+        let  dataString:String! = String(data: data, encoding: String.Encoding.utf8)!
 
+        let strSeparate = "]"
+        let Separate:Data = strSeparate.data(using: String.Encoding.ascii)!
+        sock.readData(to: Separate, withTimeout: -1, tag: 0)
+
+        print("dataString:\(dataString)")
+        
+        let jsondic:[String:AnyObject] = convertStringToDictionary(text: dataString)!
+            //Error Domain=NSCocoaErrorDomain Code=3840 "Unterminated string around character 9." UserInfo={NSDebugDescription=Unterminated string around character 9.}
+            //fatal error: unexpectedly found nil while unwrapping an Optional value
+        let strBase64 = jsondic["image"] as! String
+        let dataDecoded:NSData = NSData(base64Encoded: strBase64 , options: NSData.Base64DecodingOptions(rawValue: 0))!
+        let decodedimage:UIImage = UIImage(data: dataDecoded as Data)!
+        serverImage.image = decodedimage
+
+        
+        
+        
+        
+        
         //test 6
         
         //6-1 Error Domain=NSCocoaErrorDomain Code=3840 "JSON text did not start with array or object and option to allow fragments not set." UserInfo={NSDebugDescription=JSON text did not start with array or object and option to allow fragments not set.}
-
+/*
         var currentPacketHead:[String:Any] = [:]
         do {
             currentPacketHead = try JSONSerialization.jsonObject(with: data , options: JSONSerialization.ReadingOptions.allowFragments) as! [String:Any]
@@ -168,7 +189,7 @@ extension ServerViewController: GCDAsyncSocketDelegate {
         let type = currentPacketHead["type"]
         print("type \(type)")
         serverImage.image = UIImage(data:data)
-        
+  */
         
         //currentPacketHead = nil
 
@@ -220,10 +241,26 @@ extension ServerViewController: GCDAsyncSocketDelegate {
         self.serverImage.image = decodedimage
   */
        
-        
-        
        
-        sock.readData(withTimeout: -1, tag: 0)
+        //test 5 
+
+        /*知道傳來資料的結尾時，可以使用readDataToData：，但這個結尾必須是唯一
+         NSData * Separate = [@"}" dataUsingEncoding:NSASCIIStringEncoding];
+         [self.asyncSocket readDataToData:Separate withTimeout:-1 tag:0];*/
+         /*
+        let strSeparate = "}"
+        let Separate:Data = strSeparate.data(using: String.Encoding.ascii)!
+        sock.readData(to: Separate, withTimeout: -1, tag: 0)
+      
+        let message = String(data: data as Data,encoding: String.Encoding.utf8)
+        let dataDecoded : Data = Data(base64Encoded: message!, options: .ignoreUnknownCharacters)!
+        let decodedimage:UIImage = UIImage(data: dataDecoded as Data)!
+        //fatal error: unexpectedly found nil while unwrapping an Optional value
+        self.serverImage.image = decodedimage
+
+*/
+ 
+//        sock.readData(withTimeout: -1, tag: 0)
         print("GCDAsyncSocket, didRead finish")
     }
     
