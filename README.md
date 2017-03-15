@@ -1,6 +1,7 @@
 # socketTestTwo
 
 ###CocoaAsyncSocket TCP socket 練習<br />
+for swift 3.0<br/>
 <br />
 client端為傳送端<br />
 傳送方法寫在    @IBAction func sendImage(_ sender: UIButton) {}<br />
