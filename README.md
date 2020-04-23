@@ -2,7 +2,7 @@
 CocoaAsyncSocket  TCP connect test  for swift 3.0<br />
 <br />
 <br />
-###CocoaAsyncSocket TCP socket 練習<br />
+## CocoaAsyncSocket TCP socket 練習<br />
 <br />
 client端為傳送端<br />
 傳送方法寫在    @IBAction func sendImage(_ sender: UIButton) {}<br />
@@ -12,7 +12,7 @@ server端為接收端<br />
 <br />
 <br />
 <br />
-###完成進度：<br />
+## 完成進度：<br />
 文字傳輸o   <br />
 圖片傳輸o   <br />
 視訊傳輸x
